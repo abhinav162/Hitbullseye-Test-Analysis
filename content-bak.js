@@ -88,9 +88,7 @@ function createSelectElement(options, onChangeCallback) {
     return selectElement;
 }
 
-var gres = []
-
-function createAnalysisTable(analysisData, id) {
+function createAnalysisTable(analysisData) {
     const parentTestDiv = document.createElement("div");
     const printButton = document.createElement("button");
     printButton.textContent = "Print";
@@ -111,21 +109,6 @@ function createAnalysisTable(analysisData, id) {
     if (!analysisData) {
         return parentTestDiv;
     }
-
-    var res = ""
-    analysisData.map((question) => {
-        return res += question.Correct_Answer
-    })
-
-    const obj = {
-        "id": id,
-        "answerKey": res,
-        "name": ""
-    }
-
-    gres.push(obj)
-
-    // console.log(gres)
 
     analysisData.forEach((question) => {
         pElement.innerHTML += question.Correct_Answer;
@@ -175,11 +158,6 @@ async function executeFlow() {
         }));
         const menuSelect = createSelectElement(menuOptions, onMenuSelectChange);
 
-        const fetchAllButton = document.createElement("button");
-        fetchAllButton.textContent = "Fetch All";
-        fetchAllButton.classList.add("print-button");
-        fetchAllButton.addEventListener("click", fetchAll);
-
         const div = document.createElement("div");
         div.classList.add("content_container");
         document.body.appendChild(div);
@@ -189,7 +167,6 @@ async function executeFlow() {
 
         div.appendChild(document.createTextNode("Select a Menu: "));
         div.appendChild(menuSelect);
-        div.appendChild(fetchAllButton)
         div.appendChild(document.createElement("br"));
         div.appendChild(document.createTextNode("Select a Test: "));
         const parentTestDiv = document.createElement("div");
@@ -206,7 +183,6 @@ function onMenuSelectChange() {
     fetchTests(selectedMenuId)
         .then((tests) => {
             console.log("Fetching tests...");
-
             const testOptions = tests.map((test) => ({ value: test.testid, text: test.testname }));
             localStorage.setItem("testOptions", JSON.stringify(testOptions));
 
@@ -221,121 +197,6 @@ function onMenuSelectChange() {
                 optionElement.textContent = testOption.text;
                 testSelect.appendChild(optionElement);
             });
-        })
-        .catch((error) => {
-            handleFetchError(error);
-        });
-}
-
-function fetchAllPromise() {
-    return new Promise((resolve, reject) => {
-        let totalTests = document.querySelector(`.parent-test-div > #testSelect`).length
-        const event = new Event('change');
-
-        for (let i = 1; i < totalTests; i++) {
-            document.querySelector(`.parent-test-div > #testSelect`).options[i].selected = true
-            document.querySelector('.parent-test-div > #testSelect').dispatchEvent(event);
-        }
-
-        setTimeout(() => {
-            resolve(true)
-        }, 10000)
-    })
-}
-
-async function fetchAll() {
-    //extract options inside an object with name
-    const testSelect = document.querySelector('.parent-test-div > #testSelect');
-
-    // Create an array to store the objects
-    const optionsArray = [];
-
-    // Loop through the options and create objects
-    for (let i = 0; i < testSelect.options.length; i++) {
-        const option = testSelect.options[i];
-
-        // Create an object with value and text properties
-        const optionObject = {
-            id: option.value,
-            name: option.innerText
-        };
-
-        // Push the object to the array
-        optionsArray.push(optionObject);
-    }
-
-    await fetchAllPromise().then((res) => {
-        console.log(res)
-        if (res) {
-            let combinedObj = combineObjects(gres, optionsArray)
-            console.log(combinedObj)
-
-            // create a JSON file with the combinedObj and automatically download it
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(combinedObj));
-            const dlAnchorElem = document.createElement('a');
-            dlAnchorElem.setAttribute("href", dataStr);
-            dlAnchorElem.setAttribute("download", "answerKey.json");
-            dlAnchorElem.click();
-            dlAnchorElem.remove();
-        }
-    })
-}
-
-// combine gres and optionsArray on the basis of id
-function combineObjects(obj1, obj2) {
-    let result = []
-    obj1.forEach((obj) => {
-        obj2.forEach((obj2) => {
-            if (obj.id === obj2.id) {
-                obj.name = obj2.name
-                result.push(obj)
-            }
-        }
-        )
-    })
-
-    result.sort((a, b) => {
-        return a.id - b.id
-    })
-    return result
-}
-
-function onTestSelectChange2(testid) {
-    const selectedTestId = testid;
-
-    if (!selectedTestId) {
-        const analysisDiv = document.querySelector("#analysisDiv");
-        if (analysisDiv) {
-            analysisDiv.remove();
-        }
-        return;
-    }
-
-    const testOptions = JSON.parse(localStorage.getItem("testOptions"));
-    const selectedTest = testOptions.find((test) => test.value === parseInt(selectedTestId));
-    localStorage.setItem("currentTestName", selectedTest.text);
-
-    var res = ""
-
-    fetchQuestionWiseAnalysis(selectedTestId)
-        .then((questionWiseAnalysis) => {
-            console.log("Fetching question-wise analysis...");
-            const analysisDiv = document.querySelector("#analysisDiv");
-            if (analysisDiv) {
-                analysisDiv.remove();
-            }
-
-            const newAnalysisTable = createAnalysisTable(questionWiseAnalysis);
-            newAnalysisTable.id = "analysisDiv";
-
-            const div = document.querySelector(".parent-test-div");
-            div.appendChild(newAnalysisTable);
-
-            questionWiseAnalysis.forEach((question) => {
-                return res += question.Correct_Answer
-            })
-
-            return res
         })
         .catch((error) => {
             handleFetchError(error);
@@ -365,7 +226,7 @@ function onTestSelectChange() {
                 analysisDiv.remove();
             }
 
-            const newAnalysisTable = createAnalysisTable(questionWiseAnalysis, selectedTestId);
+            const newAnalysisTable = createAnalysisTable(questionWiseAnalysis);
             newAnalysisTable.id = "analysisDiv";
 
             const div = document.querySelector(".parent-test-div");
