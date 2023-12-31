@@ -88,7 +88,9 @@ function createSelectElement(options, onChangeCallback) {
     return selectElement;
 }
 
-var gres = []
+var gres = {
+    "test": []
+}
 
 function createAnalysisTable(analysisData, id) {
     const parentTestDiv = document.createElement("div");
@@ -119,11 +121,12 @@ function createAnalysisTable(analysisData, id) {
 
     const obj = {
         "id": id,
-        "answerKey": res,
-        "name": ""
+        "name": "",
+        "keys": res
     }
 
-    gres.push(obj)
+    // gres.push(obj)
+    gres.test.push(obj)
 
     // console.log(gres)
 
@@ -227,19 +230,30 @@ function onMenuSelectChange() {
         });
 }
 
+// promise function to fetch all the tests and store them in gres
 function fetchAllPromise() {
     return new Promise((resolve, reject) => {
         let totalTests = document.querySelector(`.parent-test-div > #testSelect`).length
         const event = new Event('change');
+        let gresTestLength = gres.test.length
 
         for (let i = 1; i < totalTests; i++) {
+            // let levelNo = document.querySelector(`.parent-test-div > #testSelect`).options[i].innerText.split(' ')[1].split(':')[0]
+
+            // if (levelNo !== '4') {
             document.querySelector(`.parent-test-div > #testSelect`).options[i].selected = true
             document.querySelector('.parent-test-div > #testSelect').dispatchEvent(event);
+            // }
         }
 
-        setTimeout(() => {
-            resolve(true)
-        }, 10000)
+        var inter = setInterval(() => {
+            gresTestLength = gres.test.length
+
+            if (gresTestLength === totalTests - 1) {
+                resolve(true);
+                clearInterval(inter)
+            }
+        }, 1000)
     })
 }
 
@@ -267,7 +281,7 @@ async function fetchAll() {
     await fetchAllPromise().then((res) => {
         console.log(res)
         if (res) {
-            let combinedObj = combineObjects(gres, optionsArray)
+            let combinedObj = combineObjects(gres.test, optionsArray)
             console.log(combinedObj)
 
             // create a JSON file with the combinedObj and automatically download it
@@ -297,7 +311,9 @@ function combineObjects(obj1, obj2) {
     result.sort((a, b) => {
         return a.id - b.id
     })
-    return result
+    return {
+        "test": result
+    }
 }
 
 function onTestSelectChange2(testid) {
