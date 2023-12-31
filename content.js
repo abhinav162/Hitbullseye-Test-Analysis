@@ -90,7 +90,9 @@ function createSelectElement(options, onChangeCallback) {
 
 var gres = {
     "test": []
-}
+} // global result object
+
+var globalLevel = null;
 
 function createAnalysisTable(analysisData, id) {
     const parentTestDiv = document.createElement("div");
@@ -178,8 +180,29 @@ async function executeFlow() {
         }));
         const menuSelect = createSelectElement(menuOptions, onMenuSelectChange);
 
+        // create level selector
+        const LevelSelector = document.createElement("select");
+        const levelOptions = [
+            { value: "", text: "Select a Level" },
+            { value: "1", text: "Level 1" },
+            { value: "2", text: "Level 2" },
+            { value: "3", text: "Level 3" },
+            { value: "4", text: "Level 4" },
+        ];
+
+        levelOptions.forEach((option) => {
+            const optionElement = document.createElement("option");
+            optionElement.value = option.value;
+            optionElement.textContent = option.text;
+            LevelSelector.appendChild(optionElement);
+        });
+        LevelSelector.addEventListener("change", changeGlobalLevel);
+
+
+        ///////
+
         const fetchAllButton = document.createElement("button");
-        fetchAllButton.textContent = "Fetch All";
+        fetchAllButton.textContent = "Fetch All Levels";
         fetchAllButton.classList.add("print-button");
         fetchAllButton.addEventListener("click", fetchAll);
 
@@ -192,6 +215,10 @@ async function executeFlow() {
 
         div.appendChild(document.createTextNode("Select a Menu: "));
         div.appendChild(menuSelect);
+        div.appendChild(document.createElement("br"));
+        div.appendChild(document.createTextNode("Select Level for Open Tests: "));
+        div.appendChild(LevelSelector);
+        div.appendChild(document.createElement("br"));
         div.appendChild(fetchAllButton)
         div.appendChild(document.createElement("br"));
         div.appendChild(document.createTextNode("Select a Test: "));
@@ -230,30 +257,56 @@ function onMenuSelectChange() {
         });
 }
 
+function changeGlobalLevel() {
+    globalLevel = this.value;
+    console.log(globalLevel)
+}
+
 // promise function to fetch all the tests and store them in gres
 function fetchAllPromise() {
     return new Promise((resolve, reject) => {
-        let totalTests = document.querySelector(`.parent-test-div > #testSelect`).length
+        let totalTests = document.querySelector(`.parent-test-div > #testSelect`).length;
         const event = new Event('change');
         let gresTestLength = gres.test.length
 
-        for (let i = 1; i < totalTests; i++) {
-            // let levelNo = document.querySelector(`.parent-test-div > #testSelect`).options[i].innerText.split(' ')[1].split(':')[0]
+        if (!globalLevel) {
+            for (let i = 1; i < totalTests; i++) {
+                // let levelNo = document.querySelector(`.parent-test-div > #testSelect`).options[i].innerText.split(' ')[1].split(':')[0]
 
-            // if (levelNo !== '4') {
-            document.querySelector(`.parent-test-div > #testSelect`).options[i].selected = true
-            document.querySelector('.parent-test-div > #testSelect').dispatchEvent(event);
-            // }
-        }
-
-        var inter = setInterval(() => {
-            gresTestLength = gres.test.length
-
-            if (gresTestLength === totalTests - 1) {
-                resolve(true);
-                clearInterval(inter)
+                // if (levelNo !== '4') {
+                document.querySelector(`.parent-test-div > #testSelect`).options[i].selected = true
+                document.querySelector('.parent-test-div > #testSelect').dispatchEvent(event);
+                // }
             }
-        }, 1000)
+
+            var inter = setInterval(() => {
+                gresTestLength = gres.test.length
+
+                if (gresTestLength === totalTests - 1) {
+                    resolve(true);
+                    clearInterval(inter)
+                }
+            }, 1000)
+        }
+        else {
+            for (let i = 1; i < totalTests; i++) {
+                let levelNo = document.querySelector(`.parent-test-div > #testSelect`).options[i].innerText.split(' ')[1].split(':')[0]
+
+                if (levelNo == globalLevel) {
+                    document.querySelector(`.parent-test-div > #testSelect`).options[i].selected = true
+                    document.querySelector('.parent-test-div > #testSelect').dispatchEvent(event);
+                }
+            }
+
+            var inter = setInterval(() => {
+                gresTestLength = gres.test.length
+
+                if (gresTestLength === 11) {
+                    resolve(true);
+                    clearInterval(inter)
+                }
+            }, 1000)
+        }
     })
 }
 
@@ -268,14 +321,27 @@ async function fetchAll() {
     for (let i = 0; i < testSelect.options.length; i++) {
         const option = testSelect.options[i];
 
-        // Create an object with value and text properties
-        const optionObject = {
-            id: option.value,
-            name: option.innerText
-        };
+        if (globalLevel) {
+            if (option.innerText.split(' ')[1].split(':')[0] == globalLevel) {
+                const optionObject = {
+                    id: option.value,
+                    name: option.innerText
+                };
 
-        // Push the object to the array
-        optionsArray.push(optionObject);
+                // Push the object to the array
+                optionsArray.push(optionObject);
+            }
+        }
+        // Create an object with value and text properties
+        else {
+            const optionObject = {
+                id: option.value,
+                name: option.innerText
+            };
+
+            // Push the object to the array
+            optionsArray.push(optionObject);
+        }
     }
 
     await fetchAllPromise().then((res) => {
