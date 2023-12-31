@@ -149,7 +149,7 @@ function createCloseButton() {
     credit_button.classList.add("credit-button");
     const credit_p = document.createElement("p");
     credit_p.classList.add("credit-p");
-    credit_p.textContent = "Code by Saurav Hathi";
+    credit_p.textContent = "Hitbullseye Analysis Master";
     const closeButton = document.createElement("button");
     closeButton.classList.add("close-button");
     closeButton.textContent = "🔥";
@@ -192,6 +192,8 @@ async function executeFlow() {
 
         div.appendChild(document.createTextNode("Select a Menu: "));
         div.appendChild(menuSelect);
+        div.appendChild(document.createElement("br"));
+        div.appendChild(document.createTextNode("Fetch All Level Answers: "));
         div.appendChild(fetchAllButton)
         div.appendChild(document.createElement("br"));
         div.appendChild(document.createTextNode("Select a Test: "));
