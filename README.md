@@ -1,4 +1,5 @@
 # <p align="center">HitBullsEye Test Analysis Chrome Extension</p>
+Fork of [Hitbullseye-Test-Analysis](https://github.com/sauravhathi/Hitbullseye-Test-Analysis) by [Saurav Hathi]
 
 <p align="center">
 
@@ -29,6 +30,10 @@ To use this extension, follow these steps:
 ## How to Use
 
 After installing the extension, visit HitBullsEye on your browser. The extension will automatically add the new feature for viewing question-wise analysis of tests.
+
+### Fetch answer for all levels in open test
+- select open test from Menu and wait for the test to load (you can check if the test has loaded by clicking "Select a Test" dropdown)
+- when test is loaded, click on "Fetch All" button and wait for some time (it will take some time to fetch all answers and download)
 
 ## Features
 
